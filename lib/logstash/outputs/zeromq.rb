@@ -58,6 +58,10 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
   # sockopt => ["ZMQ::HWM", 50, "ZMQ::IDENTITY", "my_named_queue"]
   config :sockopt, :validate => :hash
 
+  # Defines if zeromq return code EAGAIN is an error
+  # This may be used e.g. if ZMQ::SNDTIMEO is set
+  config :eagain_not_error, :validate => :boolean, :default => false
+
   public
   def register
     require "ffi-rzmq"
@@ -119,7 +123,7 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
       #error_check(@zsocket.send_string(event.sprintf(@topic), ZMQ::SNDMORE),
                   #"in topic send_string")
     end
-    error_check(@zsocket.send_string(payload), "in send_string")
+    error_check(@zsocket.send_string(payload), "in send_string", @eagain_not_error)
   rescue => e
     @logger.warn("0mq output exception", :address => @address, :exception => e)
   end
