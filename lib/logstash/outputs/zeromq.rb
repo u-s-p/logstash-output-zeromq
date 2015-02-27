@@ -96,7 +96,11 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
 
   public
   def teardown
-    error_check(@zsocket.close, "while closing the socket")
+    begin
+      error_check(@zsocket.close, "while closing the socket")
+    rescue RuntimeError => e
+      @logger.error("Failed to properly teardown ZeroMQ")
+    end
   end # def teardown
 
   private
