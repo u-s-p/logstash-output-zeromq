@@ -30,8 +30,6 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
   #
   # If the predefined topology flows don't work for you,
   # you can change the 'mode' setting
-  # TODO (lusis) add req/rep MAYBE
-  # TODO (lusis) add router/dealer
   config :topology, :validate => ["pushpull", "pubsub", "pair"], :required => true
 
   # This is used for the 'pubsub' topology only.
@@ -55,7 +53,10 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
   #
   # Example:
   # [source,ruby]
-  # sockopt => ["ZMQ::HWM", 50, "ZMQ::IDENTITY", "my_named_queue"]
+  #     sockopt => {
+  #        "ZMQ::HWM" => 50
+  #        "ZMQ::IDENTITY"  => "my_named_queue"
+  #     }
   config :sockopt, :validate => :hash
 
   public
@@ -95,9 +96,9 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
   end # def register
 
   public
-  def teardown
+  def close
     error_check(@zsocket.close, "while closing the socket")
-  end # def teardown
+  end # def close
 
   private
   def server?
@@ -106,7 +107,7 @@ class LogStash::Outputs::ZeroMQ < LogStash::Outputs::Base
 
   public
   def receive(event)
-    return unless output?(event)
+    
 
     @codec.encode(event)
   end # def receive
